@@ -5,15 +5,21 @@ ARG BASEVERSION=7
 ARG GCC_VER=11.2.0
 
 FROM centos:${BASEVERSION} AS base-amd64
+# FROM centos:7 AS base-amd64
 
 FROM centos:${BASEVERSION} AS base-ppc64le
+# FROM centos:7 AS base-ppc64le
 
 FROM amazonlinux:2 AS base-arm64
+# FROM amazonlinux:2 AS base-arm64
 
 FROM clefos:${BASEVERSION} AS base-s390x
+# FROM clefos:7 AS base-s390x
 
 # hadolint ignore=DL3006
 FROM base-$TARGETARCH
+# FROM base-$TARGETARCH
+# [base-amd64 1/1] FROM docker.io/library/centos:7
 
 # hadolint ignore=DL3031,DL3033
 RUN yum install -q -y deltarpm \
@@ -79,6 +85,13 @@ RUN yum install -q -y deltarpm \
         #wget \
         which \
     && yum clean all
+# [stage-4 1/4] RUN
+# yum install -q -y deltarpm &&
+# yum update -q -y glibc-common &&
+# yum install -q -y libX11 libXau libxcb libXcomposite libXcursor libXdamage libXdmcp libXext
+#                   libXfixes libXi libXinerama libXrandr libXrender libXScrnSaver libXt libXtst libglvnd-opengl
+#                   xorg-x11-server-Xvfb curl file net-tools openssh-clients psmisc rsync tar util-linux which &&
+# yum clean all
 
 # Set the locale
 ENV LANG en_US.UTF-8
@@ -94,6 +107,12 @@ RUN curl -sSL -o /tmp/miniconda.sh \
     && rm -fv /tmp/miniconda.sh \
     # ensure there are no out of range userids
     && chown -R root:root /opt/conda
+# [stage-4 2/4] RUN
+# curl -sSL -o /tmp/miniconda.sh "https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-$(uname -m)".sh &&
+# sha256sum /tmp/miniconda.sh &&
+# /bin/bash /tmp/miniconda.sh -bfp /opt/conda &&
+# rm -fv /tmp/miniconda.sh &&
+# chown -R root:root /opt/conda
 
 # hadolint ignore=DL3059
 RUN MC_ARCH="$(uname -m)" \
@@ -113,12 +132,28 @@ RUN MC_ARCH="$(uname -m)" \
     # or the compilers will be dumped from the package cache.
     && /opt/conda/bin/conda install --download-only --quiet --yes \
         "gcc_linux-$subdir=${GCC_VER}" "gxx_linux-$subdir=${GCC_VER}"
+# [stage-4 3/4] RUN
+# MC_ARCH="$(uname -m)" &&
+# if [ "${MC_ARCH}" = "x86_64" ]; then
+#     subdir="64";
+# else
+#     subdir="${MC_ARCH}";
+# fi &&
+# /opt/conda/bin/conda update --all --quiet --yes &&
+# /opt/conda/bin/conda install --quiet --yes conda-build &&
+# /opt/conda/bin/conda clean --all --yes &&
+# /opt/conda/bin/conda install --download-only --quiet --yes "gcc_linux-$subdir=${GCC_VER}" "gxx_linux-$subdir=${GCC_VER}"
 
 # hadolint ignore=DL3059
 RUN rm -fv /opt/conda/.condarc \
     && /opt/conda/bin/conda config --system --set show_channel_urls True \
     && /opt/conda/bin/conda config --system --set add_pip_as_python_dependency False \
     && /opt/conda/bin/conda config --show-sources
+# [stage-4 4/4] RUN
+# rm -fv /opt/conda/.condarc &&
+# /opt/conda/bin/conda config --system --set show_channel_urls True &&
+# /opt/conda/bin/conda config --system --set add_pip_as_python_dependency False &&
+# /opt/conda/bin/conda config --show-sources
 
 ENV PATH="/opt/conda/bin:${PATH}"
 
